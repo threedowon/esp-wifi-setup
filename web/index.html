@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>4DOWON · 시계 설정</title>
+  <style>
+    :root{--paper:#f5f3eb;--ink:#263a2d;--green:#326447;--muted:#677367;--line:#dce1d5}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.6}
+    main{max-width:620px;margin:auto;padding:32px 20px 48px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:36px}
+    .brand{font-size:17px;font-weight:800;letter-spacing:.13em}.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:30px;padding:4px 10px}
+    h1{font-size:30px;letter-spacing:-.05em;margin:0 0 8px}h2{font-size:19px;margin:0 0 7px;letter-spacing:-.03em}p{margin:0 0 16px}.intro{color:var(--muted);font-size:15px}
+    .clock{background:#294d38;color:#f9f7ed;border-radius:20px;padding:23px 24px;margin:26px 0}.eyebrow{font-size:11px;letter-spacing:.12em;opacity:.7}.time{font-size:clamp(32px,8vw,54px);font-weight:600;letter-spacing:-.05em;font-variant-numeric:tabular-nums;line-height:1.4}.date{font-size:13px;opacity:.8}
+    section{background:#fffef9;border:1px solid var(--line);border-radius:18px;padding:24px;margin-top:18px}.hint{font-size:13px;color:var(--muted)}label{display:block;font-size:14px;font-weight:600;margin:18px 0 7px}
+    input,select,button{font:inherit}input[type=text],input[type=password],select{width:100%;min-width:0;background:white;color:var(--ink);border:1px solid #bdc9bb;border-radius:10px;padding:12px;font-size:16px}
+    input:focus,select:focus,button:focus-visible{outline:3px solid #b2d3b8;outline-offset:2px}button{cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-weight:600;background:var(--green);color:white;min-height:48px}
+    button:disabled{opacity:.5;cursor:wait}.secondary{background:#eaf0e6;color:var(--green)}.wide{width:100%;margin-top:18px}.row{display:flex;align-items:center;gap:10px}.row input{flex:1}.row button{flex:none;font-size:13px;padding:12px}.check{display:flex;gap:8px;align-items:center;font-weight:400;font-size:13px}.check input{width:17px;height:17px;accent-color:var(--green)}
+    .status{padding:12px 14px;background:#eaf0e6;border-radius:10px;font-size:14px;overflow-wrap:anywhere}.status.error{background:#f9e8df;color:#854a31}.message{margin-top:12px;font-size:14px;overflow-wrap:anywhere}.message.error{color:#a5462d}.network{display:block;width:100%;text-align:left;background:transparent;color:var(--ink);font-size:14px;border-bottom:1px solid var(--line);border-radius:0;overflow-wrap:anywhere}.network small{display:block;color:var(--muted);font-weight:400}
+    #networks{max-height:230px;overflow:auto;margin-top:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid label{margin-top:12px}footer{font-size:12px;color:var(--muted);text-align:center;margin-top:24px}a{color:var(--green)}[hidden]{display:none!important}
+    @media(max-width:360px){main{padding:24px 14px}section{padding:18px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <header><span class="brand">4DOWON</span><span class="tag">나의 작은 시계</span></header>
+  <h1>시계에 와이파이를 알려줘요.</h1>
+  <p class="intro">한 번 저장하면, 다음부터 전원을 켤 때마다<br>자동으로 연결하고 시간을 맞춰요.</p>
+  <div class="clock" aria-label="보드의 한국 시간 미리보기">
+    <div class="eyebrow">SEOUL · KOREA STANDARD TIME</div>
+    <div class="time" id="time">--:--</div>
+    <div class="date" id="date">인터넷에 연결하면 시간이 표시돼요.</div>
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite">시계와 연결하고 있어요…</div>
+  <section>
+    <h2>01. 사용할 와이파이</h2>
+    <p class="hint">집이나 작업실의 2.4GHz 와이파이를 선택해주세요.</p>
+    <button class="secondary wide" id="scan" type="button">주변 와이파이 찾기</button>
+    <p id="scanMessage" class="message" role="status"></p>
+    <div id="networks" aria-label="검색된 와이파이"></div>
+    <form id="wifiForm">
+      <label for="ssid">와이파이 이름</label>
+      <input id="ssid" name="ssid" type="text" maxlength="32" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="선택하거나 직접 입력하세요">
+      <label for="password">와이파이 비밀번호</label>
+      <div class="row"><input id="password" name="password" type="password" maxlength="63" autocomplete="new-password" required aria-describedby="passwordHelp"><button type="button" id="showPassword" class="secondary" aria-pressed="false">보기</button></div>
+      <div id="passwordHelp" class="hint">연결 정보를 바꿀 때 비밀번호를 다시 입력해주세요.</div>
+      <label class="check"><input id="open" type="checkbox">비밀번호 없는 와이파이예요</label>
+      <button class="wide" id="connect" type="submit">연결하고 저장하기</button>
+      <p id="wifiMessage" class="message" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+  <section>
+    <h2>02. 시계 화면</h2>
+    <p class="hint">T-Display에 표시할 시간 형식과 화면 밝기를 골라요.</p>
+    <form id="clockForm">
+      <div class="grid">
+        <div><label for="format">시간 표시</label><select id="format"><option value="24">24시간 · 18:30</option><option value="12">12시간 · 오후 6:30</option></select></div>
+        <div><label for="brightness">화면 밝기</label><select id="brightness"><option value="50">아주 은은하게</option><option value="120">은은하게</option><option value="180" selected>보통</option><option value="255">밝게</option></select></div>
+      </div>
+      <button class="wide secondary" id="saveClock" type="submit">화면 설정 저장</button>
+      <p id="clockMessage" class="message" role="status"></p>
+    </form>
+  </section>
+  <button id="finish" class="wide" type="button" disabled>설정 마치고 시계 보기</button>
+  <p id="finishMessage" class="message" role="status"></p>
+  <footer>다시 설정하려면 보드의 IO35 버튼을 3초 동안 눌러주세요.<br>설정 페이지는 시계 안에서 실행돼요.</footer>
+</main>
+<script>
+const token = '__TOKEN__';
+const $ = id => document.getElementById(id);
+let initialized = false, busy = false, scanning = false, finished = false;
+let requestPending = false, locallyConnecting = false, clockSettingsDirty = false;
+let connectionRevision = 0;
+let format24 = true, boardEpoch = 0, epochReceivedAt = 0;
+function tell(id, text, error = false) {
+  $(id).textContent = text;
+  $(id).classList.toggle('error', error);
+}
+async function api(path, fields) {
+  const options = {cache: 'no-store'};
+  if (fields) {
+    options.method = 'POST';
+    options.body = new URLSearchParams({...fields, token});
+  }
+  const controller = new AbortController();
+  options.signal = controller.signal;
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(path, options);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || '다시 시도해주세요.');
+    return {data, status: response.status};
+  } finally { clearTimeout(timeout); }
+}
+function updateButtons() {
+  if (finished) return;
+  $('connect').disabled = busy || requestPending || scanning;
+  $('scan').disabled = busy || requestPending || scanning;
+}
+function renderTime() {
+  if (!boardEpoch) return;
+  const date = new Date(boardEpoch * 1000 + Date.now() - epochReceivedAt);
+  $('time').textContent = date.toLocaleTimeString('ko-KR', {timeZone:'Asia/Seoul', hour:'2-digit', minute:'2-digit', hour12:!format24});
+  $('date').textContent = date.toLocaleDateString('ko-KR', {timeZone:'Asia/Seoul', month:'long', day:'numeric', weekday:'long'});
+}
+async function poll() {
+  if (finished) return;
+  const revision = connectionRevision;
+  try {
+    const {data} = await api('/api/status');
+    if (finished || requestPending || revision !== connectionRevision) return;
+    busy = data.state === 'connecting';
+    $('finish').disabled = busy || !data.connected || data.state === 'storage_error';
+    let text = data.message;
+    if (!busy && data.connected && data.state !== 'storage_error') {
+      text = data.ssid + '에 연결됐어요.' + (data.epoch ? ' 한국 시간을 맞췄어요.' : ' 인터넷 시간을 기다리고 있어요.');
+    }
+    tell('status', text, data.state === 'failed' || data.state === 'storage_error');
+    if (locallyConnecting && !busy) {
+      tell('wifiMessage', data.message, data.state !== 'connected');
+      locallyConnecting = false;
+    }
+    if (!initialized) {
+      // Never interpolate network names into HTML.
+      if (!$('ssid').value) $('ssid').value = data.ssid || '';
+      if (!clockSettingsDirty) {
+        $('format').value = data.use24Hour ? '24' : '12';
+        $('brightness').value = String(data.brightness);
+      }
+      initialized = true;
+    }
+    format24 = data.use24Hour;
+    if (data.epoch) {boardEpoch = data.epoch; epochReceivedAt = Date.now(); renderTime();}
+  } catch (error) {
+    if (!finished) tell('status', '시계와 통신이 잠시 끊겼어요. 보드 화면의 설정용 와이파이에 연결되어 있는지 확인해주세요.', true);
+  } finally {
+    updateButtons();
+    if (!finished) setTimeout(poll, 2000);
+  }
+}
+function setOpenNetwork() {
+  $('password').disabled = $('open').checked;
+  $('password').required = !$('open').checked;
+  if ($('open').checked) $('password').value = '';
+}
+$('open').addEventListener('change', setOpenNetwork);
+$('showPassword').addEventListener('click', () => {
+  const show = $('password').type === 'password';
+  $('password').type = show ? 'text' : 'password';
+  $('showPassword').textContent = show ? '숨기기' : '보기';
+  $('showPassword').setAttribute('aria-pressed', String(show));
+});
+$('scan').addEventListener('click', async () => {
+  scanning = true; updateButtons(); $('networks').replaceChildren();
+  tell('scanMessage', '주변 와이파이를 찾고 있어요…');
+  try {
+    let result;
+    for (let attempt = 0; attempt < 20; attempt++) {
+      result = await api('/api/scan');
+      if (result.status !== 202) break;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (result.status === 202) throw new Error('검색 시간이 길어지고 있어요. 잠시 후 다시 시도해주세요.');
+    for (const network of result.data.networks) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'network'; button.textContent = network.ssid;
+      const detail = document.createElement('small');
+      detail.textContent = (network.open ? '비밀번호 없음' : '비밀번호 필요') + ' · ' + network.rssi + ' dBm';
+      button.append(detail);
+      button.addEventListener('click', () => {
+        $('ssid').value = network.ssid; $('open').checked = network.open;
+        $('password').value = ''; setOpenNetwork();
+        (network.open ? $('connect') : $('password')).focus();
+      });
+      $('networks').append(button);
+    }
+    tell('scanMessage', result.data.networks.length ? '아래에서 사용할 와이파이를 눌러주세요.' : '찾은 와이파이가 없어요. 이름을 직접 입력할 수 있어요.');
+  } catch (error) {tell('scanMessage', error.message, true);}
+  finally {scanning = false; updateButtons();}
+});
+$('wifiForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const ssid = $('ssid').value, password = $('password').value;
+  if (new TextEncoder().encode(ssid).length > 32 || (!$('open').checked && (new TextEncoder().encode(password).length < 8 || new TextEncoder().encode(password).length > 63))) {
+    tell('wifiMessage', '이름은 최대 32바이트, 비밀번호는 8~63바이트로 입력해주세요.', true); return;
+  }
+  requestPending = true; connectionRevision++; updateButtons(); $('finish').disabled = true;
+  try {
+    const {data} = await api('/api/wifi', {ssid, password, open:$('open').checked ? '1' : '0'});
+    busy = true; locallyConnecting = true; $('password').value = '';
+    tell('wifiMessage', data.message);
+  } catch (error) {tell('wifiMessage', error.message, true);}
+  finally {requestPending = false; updateButtons();}
+});
+$('clockForm').addEventListener('change', () => {clockSettingsDirty = true;});
+$('clockForm').addEventListener('submit', async event => {
+  event.preventDefault(); $('saveClock').disabled = true;
+  try {
+    const {data} = await api('/api/clock', {format:$('format').value, brightness:$('brightness').value});
+    format24 = $('format').value === '24'; renderTime(); tell('clockMessage', data.message);
+  } catch (error) {tell('clockMessage', error.message, true);}
+  finally {$('saveClock').disabled = false;}
+});
+$('finish').addEventListener('click', async () => {
+  $('finish').disabled = true;
+  try {
+    const {data} = await api('/api/finish', {});
+    finished = true; tell('finishMessage', data.message);
+    document.querySelectorAll('button,input,select').forEach(element => {element.disabled = true;});
+    tell('status', '설정 완료! 보드 화면에서 시계를 확인해주세요.');
+  } catch (error) {tell('finishMessage', error.message, true); $('finish').disabled = false;}
+});
+setInterval(renderTime, 1000);
+poll();
+</script>
+</body>
+</html>
